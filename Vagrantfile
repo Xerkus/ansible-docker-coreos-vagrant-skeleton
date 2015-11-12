@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # # vi: set ft=ruby :
 
-$num_instances = 1
+$num_instances = 3
 $instance_name_prefix = "core"
 $forwarded_ports = {}
 
@@ -20,19 +20,6 @@ Vagrant.configure("2") do |config|
   config.vm.box = "coreos-stable"
   config.vm.box_url = "http://stable.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json"
 
-  # fake bastion node to work out build and deploy process
-  config.vm.define "%s-buildnode" % $instance_name_prefix do |c|
-    c.vm.hostname = "%s-buildnode" % $instance_name_prefix
-    if $expose_docker_tcp
-      c.vm.network "forwarded_port", guest: 2375, host: ($expose_docker_tcp + i - 1), auto_correct: true
-    end
-
-    ip = "172.17.8.100"
-    c.vm.network :private_network, ip: ip
-
-    c.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
-  end
-
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |c|
       c.vm.hostname = vm_name
@@ -49,6 +36,9 @@ Vagrant.configure("2") do |config|
       c.vm.network :private_network, ip: ip
 
       c.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
+      c.vm.provision :file, :source => ".provision/cloud-config", :destination => "/tmp/vagrantfile-user-data"
+      c.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
+
     end
   end
 
