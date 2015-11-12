@@ -17,8 +17,8 @@ Vagrant.configure("2") do |config|
     config.vbguest.auto_update = false
   end
 
-  config.vm.box = "coreos-stable"
-  config.vm.box_url = "http://stable.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json"
+  config.vm.box = "coreos-beta"
+  config.vm.box_url = "http://beta.release.core-os.net/amd64-usr/current/coreos_production_vagrant.json"
 
   (1..$num_instances).each do |i|
     config.vm.define vm_name = "%s-%02d" % [$instance_name_prefix, i] do |c|
